@@ -56,8 +56,10 @@
           </div>
           <div id="tchat">
             <div id="message"></div>
-            <input type="text" id="userTexte" placeholder="Votre message"/>
-            <button class="btn" id="send"><a href="">Send</a></button>
+            <form id="form">
+              <input type="text" id="userTexte" placeholder="Votre message"/>
+              <input type="submit" class="btn" id="send" value="send"/>
+            </form>
           </div>
         </div>
 
@@ -76,5 +78,10 @@
         <script>app.userListLogged();</script>
         <script>app.postMessage();</script>
         <script>app.talk();</script>
+        <script type="text/javascript">
+        setInterval(function(){
+          app.getTalk();
+          app.userListLogged();
+        },2000);</script>
     </body>
 </html>

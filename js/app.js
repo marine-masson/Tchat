@@ -10,7 +10,7 @@
 	var $register         = $('#register');
 	var $connect          = $('#connect');
 	var $disconnect       = $('#disconnect');
-	var $send       = $('#send');
+	var $send             = $('#send');
 
 
 	function call_tchat_api(url, cb) {
@@ -19,10 +19,6 @@
 			url: API_ROOT_URL + url,
 			dataType: 'jsonp'
 		});
-
-		setInterval( function(){
-			request.ajax.reload();
-		},2000 );
 
 		// En cas d'erreur
 		request.fail(function (jqXHR, textStatus, errorThrown){
@@ -44,6 +40,10 @@ var app ={
 				e.preventDefault();
 				userLogin  = $('#login').val();
 				userPassword = $('#password').val();
+
+				if(userLogin == '' && userPassword == ''){
+					return $('#infos').append('<p class=" fa fa-times unconnect"><span>Vous devez remplir les champs</span></p>');
+				};
 				app.Register(userLogin, userPassword);
 			});
 		},
@@ -86,8 +86,11 @@ var app ={
 				userLogin  = $('#login').val();
 				userPassword = $('#password').val();
 				app.connectAction(userLogin, userPassword);
-			
-			});
+
+				if(userLogin == '' && userPassword == ''){
+					return $('#infos').append('<p class=" fa fa-times unconnect"><span>Vous devez remplir les champs</span></p>');
+				}
+				});
 		},
 
 		connectAction: function(userLogin, userPassword) {
@@ -98,6 +101,7 @@ var app ={
 					return alert('Une erreur c\'est produite');
 				}
 				else if(data.result.status == "failure"){
+					$('#infos').empty();
 					return $('#infos').append('<p class=" fa fa-times unconnect"><span>'+data.result.message+'</span></p>');
 				}
 
@@ -108,6 +112,7 @@ var app ={
 				window.location = tchat;
 
 			});
+
 		},
 
 		disconnect: function() {
@@ -120,12 +125,15 @@ var app ={
 		},
 
 		disconnectAction: function(tokenStorage, idStorage) {
+			var idStorage = localStorage.getItem('id');
+			var tokenStorage = localStorage.getItem('token');
 			call_tchat_api('/logout/' + tokenStorage + '/' + idStorage +'', function(err, data){
 				var connect = 'connect.html';
 				if(err) {
 					return alert('Une erreur c\'est produite');
 				}
 				else if(data.result.status == "failure"){
+					$('#infos').empty();
 					return $('#infos').append('<p class=" fa fa-times unconnect"><span>'+data.result.message+'</span></p>');
 				}
 
@@ -144,24 +152,27 @@ var app ={
 				if(err) {
 					return alert('Une erreur c\'est produite');
 				}
-				
+
+				$('#users').empty();
 				for(var i =0; i < data.result.user.length; i++){
-					$('#userLogged').append('<li class="fa fa-user list-users"><span>' + data.result.user[i] + '</Span></li>');
+					$('#users').append('<li class="fa fa-user list-users"><span>' + data.result.user[i] + '</Span></li>');
 				}
 			});
 		},
 
 		postMessage: function(){
 
-			$send.on('click', function(e){
+			$('#form').on('submit', function(e){
 				e.preventDefault();
 				var idStorage = localStorage.getItem('id');
 				var tokenStorage = localStorage.getItem('token');
 				var messageStorage = localStorage.getItem('message');
 				app.getMessage(tokenStorage, idStorage, messageStorage);
 				$('#userTexte').val('');
+				setInterval(function(){
+		          app.getTalk();
+		        },100);
 
-				window.setInterval(app.getMessage,3000);
 			});
 		},
 
@@ -192,9 +203,10 @@ var app ={
 					return alert('Une erreur c\'est produite');
 				}
 
+				$('#message').empty();
 				var tblTalk = data.result.talk;
 				var infinite = 10^10;
-				for(var i = 0; i < tblTalk.length; i++){
+				for(var i = tblTalk.length - 25; i < tblTalk.length ; i++){
 					$('#message').append('<div class="user"> ' + tblTalk[i].user_name +' : </div> ' + tblTalk[i].content + '<br>').scrollTop(10*10000000000000);
 				}
 
